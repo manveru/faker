@@ -90,15 +90,15 @@ func init() {
 		})
 		It("makes company catch phrases", func() {
 			Expect(func() string { return fake.CompanyCatchPhrase() }, Returns,
-				"Balanced next generation complexity",
+				"Balanced next generation circuit",
 				"Object-based high-level task-force",
 				"Organized actuating intranet")
 		})
 		It("makes company bs", func() {
 			Expect(func() string { return fake.CompanyBs() }, Returns,
-				"evolve global solutions",
-				"syndicate magnetic e-tailers",
-				"productize synergistic portals")
+				"deliver dynamic e-markets",
+				"iterate impactful e-services",
+				"utilize robust eyeballs")
 		})
 
 		It("makes names", func() {
@@ -123,9 +123,9 @@ func init() {
 		})
 		It("makes job titles", func() {
 			Expect(func() string { return fake.JobTitle() }, Returns,
-				"Global Tactics Producer",
-				"Legacy Branding Assistant",
-				"Principal Program Liason")
+				"Human Factors Planner",
+				"Legacy Mobility Representative",
+				"Senior Accounts Architect")
 		})
 
 		It("makes ", func() {

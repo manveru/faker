@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	keyPattern       = regexp.MustCompile("%{[^}]+}")
+	keyPattern       = regexp.MustCompile("#{[^}]+}")
 	numerifyPattern  = regexp.MustCompile("#+")
 	removeFancyChars = regexp.MustCompile("\\W")
 )
@@ -104,9 +104,9 @@ func (f *Faker) Longitude() float64       { return (f.Rand.Float64() * 360) - 18
 func (f *Faker) CompanyName() string   { return f.parse("company.name") }
 func (f *Faker) CompanySuffix() string { return f.parse("company.suffix") }
 func (f *Faker) CompanyCatchPhrase() string {
-	return f.combine("company.buzzwords.1", "company.buzzwords.2", "company.buzzwords.3")
+	return f.combine("company.buzzwords.0", "company.buzzwords.1", "company.buzzwords.2")
 }
-func (f *Faker) CompanyBs() string { return f.combine("company.bs.1", "company.bs.2", "company.bs.3") }
+func (f *Faker) CompanyBs() string { return f.combine("company.bs.0", "company.bs.1", "company.bs.2") }
 
 func (f *Faker) PhoneNumber() string {
 	return f.numerify(f.combine("phone_number.formats"))
@@ -201,11 +201,28 @@ func (f *Faker) combine(keys ...string) string {
 }
 
 func (f *Faker) parse(key string) string {
-	defer func() { recover() }()
-	format := f.sample(f.Dict[key]...)
+	baseKeyIndex := strings.Index(key, ".")
+	baseKey := key[0:baseKeyIndex]
+
+	formats, found := f.Dict[key]
+	if !found {
+		panic("couldn't find key: " + key)
+	}
+
+	format := f.sample(formats...)
 
 	return recGsub(keyPattern, format, func(s string) string {
-		return f.sample(f.Dict[s[2:len(s)-1]]...)
+		entryKey := strings.ToLower(s[2 : len(s)-1])
+
+		if strings.Index(entryKey, ".") == -1 {
+			entryKey = baseKey + "." + entryKey
+		}
+
+		entry, found := f.Dict[entryKey]
+		if !found {
+			panic("couldn't find entry key: " + entryKey)
+		}
+		return f.sample(entry...)
 	})
 }
 
