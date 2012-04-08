@@ -2,6 +2,7 @@
 package faker
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -22,13 +23,20 @@ var (
 type Faker struct {
 	Language string
 	Dict     map[string][]string
-	Rand     *rand.Rand
+	Rand     Rand
 }
 
-func New(lang string) *Faker {
+type Rand interface {
+	Float32() float32
+	Float64() float64
+	Int63n(int64) int64
+	Intn(int) int
+}
+
+func New(lang string) (*Faker, error) {
 	subDict, ok := Dict[lang]
 	if !ok {
-		panic("No such language: " + lang)
+		return nil, errors.New(fmt.Sprintf("No such language: %q", lang))
 	}
 
 	source := rand.NewSource(time.Now().Unix())
@@ -36,7 +44,7 @@ func New(lang string) *Faker {
 		Language: lang,
 		Dict:     subDict,
 		Rand:     rand.New(source),
-	}
+	}, nil
 }
 
 func (f *Faker) Words(count int, supplemental bool) []string {
@@ -124,7 +132,7 @@ func (f *Faker) Email() string     { return f.UserName() + "@" + f.DomainName() 
 func (f *Faker) FreeEmail() string { return f.UserName() + "@" + f.parse("internet.free_email") }
 func (f *Faker) SafeEmail() string { return f.UserName() + "@example." + f.sample("org", "com", "net") }
 func (f *Faker) UserName() string {
-	return strings.ToLower(f.sample(f.FirstName(), f.FirstName()+f.sample(".", "_")+f.LastName()))
+	return fixUmlauts(strings.ToLower(f.sample(f.FirstName(), f.FirstName()+f.sample(".", "_")+f.LastName())))
 }
 func (f *Faker) DomainName() string {
 	return f.DomainWord() + "." + f.DomainSuffix()
