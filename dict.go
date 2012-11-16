@@ -1,6 +1,19 @@
 package faker
 
-var Dict = map[string]map[string][]string{
+// You can add your own translations and words to this dictionary.
+// It's a map[string]map[string][]string.
+// For example:
+//
+//   faker.Dict["en"]["company.suffix"] = []string{
+//     "Inc",
+//     "and Sons",
+//     "LLC",
+//     "Group",
+//   }
+var Dict = dict
+
+// this just messes up godoc very badly, so keep it private.
+var dict = map[string]map[string][]string{
 	"de": map[string][]string{
 		"internet.free_email": []string{
 			"gmail.com",
