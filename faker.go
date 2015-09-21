@@ -98,7 +98,7 @@ func (f *Faker) Paragraphs(count int, supplemental bool) []string {
 func (f *Faker) City() string             { return f.parse("address.city") }
 func (f *Faker) StreetName() string       { return f.parse("address.street_name") }
 func (f *Faker) StreetAddress() string    { return f.numerify(f.parse("address.street_address")) }
-func (f *Faker) SecondaryAddress() string { return f.parse("address.secondary_address") }
+func (f *Faker) SecondaryAddress() string { return f.numerify(f.parse("address.secondary_address")) }
 func (f *Faker) PostCode() string         { return f.bothify(f.parse("address.postcode")) }
 func (f *Faker) StreetSuffix() string     { return f.parse("address.street_suffix") }
 func (f *Faker) CitySuffix() string       { return f.parse("address.city_suffix") }
