@@ -72,6 +72,9 @@ func (f *Faker) Characters(count int) string {
 }
 
 func (f *Faker) Sentence(words int, supplemental bool) string {
+	if f.Language == "zh-CN" {
+		return strings.Join(f.Words(words+f.Rand.Intn(6), supplemental), "") + "。"
+	}
 	return capitalize(strings.Join(f.Words(words+f.Rand.Intn(6), supplemental), " ")) + "."
 }
 
