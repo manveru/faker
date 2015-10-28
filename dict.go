@@ -13678,7 +13678,7 @@ var dict = map[string]map[string][]string{
 			"###########",
 		},
 		"address.street_name": []string{
-			"#{Name.last_name}#{street_suffix}",
+			"#{Name.last_name}家#{street_suffix}",
 		},
 		"address.street_address": []string{
 			"#{street_name}#{building_number}号",
@@ -13725,7 +13725,7 @@ var dict = map[string]map[string][]string{
 			"澳门",
 		},
 		"company.name": []string{
-			"#{address.state}#{Name.last_name}#{suffix}",
+			"#{Name.first_name}#{Name.first_name}#{suffix}",
 		},
 		"company.suffix": []string{
 			"有限公司",
