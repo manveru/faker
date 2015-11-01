@@ -39,7 +39,7 @@ func New(lang string) (*Faker, error) {
 		return nil, errors.New(fmt.Sprintf("No such language: %q", lang))
 	}
 
-	source := rand.NewSource(time.Now().Unix())
+	source := rand.NewSource(time.Now().UnixNano())
 	return &Faker{
 		Language: lang,
 		Dict:     subDict,
