@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"os"
 	"sort"
+
+	"github.com/go-yaml/yaml"
 )
 
 func main() {
@@ -31,7 +32,7 @@ func main() {
 		final[lang] = make(map[string][]string)
 
 		out := make(map[string]map[string]map[string]map[string]interface{})
-		err = goyaml.Unmarshal(in, out)
+		err = yaml.Unmarshal(in, out)
 		if err != nil {
 			panic(err)
 		}
