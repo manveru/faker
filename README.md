@@ -9,7 +9,10 @@
     )
 
     func main() {
-      fake := faker.New("en")
+      fake, err := faker.New("en")
+      if err != nil {
+	    panic(err)
+	  }
       println(fake.Name())  //> "Adriana Crona"
       println(fake.Email()) //> charity.brown@fritschbotsford.biz
     }
