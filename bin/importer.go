@@ -6,7 +6,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/go-yaml/yaml"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func main() {
