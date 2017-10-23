@@ -7,6 +7,10 @@ import (
 	"testing"
 )
 
+var (
+	f, err = New("en")
+)
+
 func ExampleFaker_Name() {
 	fake, _ := New("en")
 	fake.Rand = rand.New(rand.NewSource(42))
@@ -228,10 +232,6 @@ func init() {
 			Expect(func() string { return fake.PostCode() },
 				Returns, "01478", "60712", "72581")
 		})
-		It("makes fake street suffixes", func() {
-			Expect(func() string { return fake.StreetSuffix() },
-				Returns, "", "", "")
-		})
 		It("makes fake city suffixes", func() {
 			Expect(func() string { return fake.CitySuffix() },
 				Returns, "stadt", "land", "scheid")
@@ -243,10 +243,6 @@ func init() {
 		It("makes random German state abbreviations", func() {
 			Expect(func() string { return fake.StateAbbr() },
 				Returns, "BE", "SH", "HB")
-		})
-		It("makes random US state names", func() {
-			Expect(func() string { return fake.State() },
-				Returns, "", "", "")
 		})
 		It("makes random country names", func() {
 			Expect(func() string { return fake.Country() },
@@ -273,23 +269,6 @@ func init() {
 			Expect(func() string { return fake.CompanySuffix() },
 				Returns, "Gruppe", "Gruppe", "Gruppe")
 		})
-		It("makes company catch phrases", func() {
-			Expect(func() string { return fake.CompanyCatchPhrase() }, Returns,
-				"Balanced next generation circuit",
-				"Object-based high-level task-force",
-				"Organized actuating intranet")
-		})
-		It("makes company bs", func() {
-			Expect(func() string { return fake.CompanyBs() }, Returns,
-				"deliver dynamic e-markets",
-				"iterate impactful e-services",
-				"utilize robust eyeballs")
-		})
-
-		It("makes names", func() {
-			Expect(func() string { return fake.Name() }, Returns,
-				"Adriana Crona", "Miss Stuart Maggio", "Nathen Huels")
-		})
 		It("makes first names", func() {
 			Expect(func() string { return fake.FirstName() },
 				Returns, "Dorian", "Leroy", "Collien")
@@ -306,13 +285,6 @@ func init() {
 			Expect(func() string { return fake.NameSuffix() }, Returns,
 				"von der", "von der", "von der")
 		})
-		It("makes job titles", func() {
-			Expect(func() string { return fake.JobTitle() }, Returns,
-				"Human Factors Planner",
-				"Legacy Mobility Representative",
-				"Senior Accounts Architect")
-		})
-
 		It("makes all kinds of email addresses", func() {
 			Expect(func() string { return fake.Email() }, Returns,
 				"leroy.buehler@spankrittweg.org",
@@ -348,17 +320,6 @@ func init() {
 				"http://ruckdeschel.com/kaan.herweg")
 		})
 
-		It("makes random words", func() {
-			Expect(fake.Words(0, false), ToDeepEqual, []string{})
-			Expect(fake.Words(1, false), ToDeepEqual, []string{"at"})
-			Expect(fake.Words(2, false), ToDeepEqual, []string{"illum", "ut"})
-			Expect(fake.Words(3, false), ToDeepEqual, []string{"est", "sit", "soluta"})
-			Expect(fake.Words(0, true), ToDeepEqual, []string{})
-			Expect(fake.Words(1, true), ToDeepEqual, []string{"stabilis"})
-			Expect(fake.Words(2, true), ToDeepEqual, []string{"sunt", "theologus"})
-			Expect(fake.Words(3, true), ToDeepEqual, []string{"facere", "super", "adipiscor"})
-		})
-
 		It("makes random characters", func() {
 			Expect(fake.Characters(0), ToEqual, "")
 			Expect(fake.Characters(50), ToEqual, "v7ottxf08ku5u1e8barnpqxfqhposxhm1ur5wc7jqy6ccjw8bx")
@@ -366,23 +327,6 @@ func init() {
 				Expect(len(fake.Characters(n)), ToEqual, n)
 			}
 		})
-
-		It("makes random sentences", func() {
-			Expect(fake.Sentence(0, false), ToEqual, "Illum ut est sit soluta.")
-			Expect(fake.Sentence(15, false), ToEqual, "Numquam nobis sunt quaerat ea dolores facere deleniti culpa numquam ut distinctio maxime consequatur est qui corporis sunt.")
-			Expect(fake.Sentence(0, true), ToEqual, "Agnosco odit voluptas sumo ipsa.")
-			Expect(fake.Sentence(15, true), ToEqual, "Tempus solutio umbra hic vulnero baiulus colo blanditiis circumvenio nostrum eius fugit cogo centum fuga.")
-		})
-
-		It("makes random paragraphs", func() {
-			Expect(fake.Paragraph(0, false), ToEqual, "")
-			Expect(fake.Paragraph(2, false), ToEqual, "Illum ut est sit soluta nulla numquam nobis. Quaerat ea dolores facere.")
-			Expect(fake.Paragraph(4, false), ToEqual, "Culpa numquam ut distinctio maxime. Est qui corporis sunt officia odit et. Odit molestias voluptas porro. Magnam ipsa corporis.")
-			Expect(fake.Paragraph(0, true), ToEqual, "")
-			Expect(fake.Paragraph(2, true), ToEqual, "Non averto quisquam corpus. Baiulus colo blanditiis.")
-			Expect(fake.Paragraph(4, true), ToEqual, "Tersus qui suscipit tenus et quod. Comprehendo coepi terminatio claudeo suscipio. Voluptas bis voluptatibus voluptatibus sol. Terebro arto autem canonicus stabilis defungo adnuo at.")
-		})
-
 		It("makes random German phone numbers", func() {
 			Expect(func() string { return fake.PhoneNumber() }, Returns,
 				"(02461) 0430723", "+49-4385-21431614", "(0804) 543021034")
@@ -398,4 +342,160 @@ func Returns(fun func() string, expected ...string) (string, bool) {
 		}
 	}
 	return "", true
+}
+
+func BenchmarkCellPhone(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.CellPhoneNumber()
+	}
+}
+func BenchmarkCity(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.City()
+	}
+}
+func BenchmarkCityPrefix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.CityPrefix()
+	}
+}
+func BenchmarkCitySuffix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.CitySuffix()
+	}
+}
+func BenchmarkCmapnyBS(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.CompanyBs()
+	}
+}
+func BenchmarkCompagnyCatchPhrase(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.CompanyCatchPhrase()
+	}
+}
+func BenchmarkCompagnyName(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.CompanyName()
+	}
+}
+func BenchmarkCompagnySuffix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.CompanySuffix()
+	}
+}
+func BenchmarkCountry(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.Country()
+	}
+}
+func BenchmarkDomainName(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.DomainName()
+	}
+}
+func BenchmarkDomainSuffix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.DomainSuffix()
+	}
+}
+func BenchmarkDomainWord(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.DomainWord()
+	}
+}
+func BenchmarkEmail(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.Email()
+	}
+}
+func BenchmarkFirstName(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.FirstName()
+	}
+}
+func BenchmarkFreeEmail(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.FreeEmail()
+	}
+}
+func BenchmarkJobTitle(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.JobTitle()
+	}
+}
+func BenchmarkLastName(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.LastName()
+	}
+}
+func BenchmarkName(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.Name()
+	}
+}
+func BenchmarkNamePrefix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.NamePrefix()
+	}
+}
+func BenchmarkNameSuffix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.NameSuffix()
+	}
+}
+func BenchmarkPhoneNumber(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.PhoneNumber()
+	}
+}
+func BenchmarkPostCode(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.PostCode()
+	}
+}
+func BenchmarkSafeEmail(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.SafeEmail()
+	}
+}
+func BenchmarkSecondaryAdress(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.SecondaryAddress()
+	}
+}
+func BenchmarkState(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.State()
+	}
+}
+func BenchmarkSateAbbr(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.StateAbbr()
+	}
+}
+func BenchmarkStreetAdress(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.StreetAddress()
+	}
+}
+func BenchmarkSteetName(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.StreetName()
+	}
+}
+func BenchmarkStreeSuffix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.StreetSuffix()
+	}
+}
+func BenchmarkUrl(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.URL()
+	}
+}
+func BenchmarkUserName(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f.UserName()
+	}
 }
