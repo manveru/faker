@@ -2,6 +2,7 @@
 package faker
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -18,12 +19,48 @@ var (
 	keyPattern       = regexp.MustCompile("#{[^}]+}")
 	numerifyPattern  = regexp.MustCompile("#+")
 	removeFancyChars = regexp.MustCompile("\\W")
+	needRegexParsing = map[string]bool{
+		"name.title.descriptor":     false,
+		"name.first_name":           false,
+		"name.title.job":            false,
+		"name.title.level":          false,
+		"name.prefix":               false,
+		"name.suffix":               false,
+		"name.last_name":            false,
+		"name.name":                 true,
+		"internet.domain_suffix":    false,
+		"internet.free_email":       false,
+		"adress.country":            false,
+		"address.state":             false,
+		"address.city":              true,
+		"address.city_prefix":       false,
+		"adress.city_suffix":        false,
+		"address.postcode":          true,
+		"address.street_address":    true,
+		"address.street_name":       true,
+		"address.street_suffix":     false,
+		"address.state_abbr":        false,
+		"address.building_number":   true,
+		"address.secondary_address": true,
+		"company.name":              true,
+		"compagny.suffix":           false,
+		"company.buzzwords.0":       false,
+		"company.buzzwords.1":       false,
+		"company.buzzwords.2":       false,
+		"company.bs.0":              false,
+		"company.bs.1":              false,
+		"company.bs.2":              false,
+		"phone_number.formats":      true,
+		"lorem.words":               false,
+		"lorem.supplemental":        false,
+	}
 )
 
 type Faker struct {
 	Language string
 	Dict     map[string][]string
 	Rand     Rand
+	Buffer   bytes.Buffer
 }
 
 type Rand interface {
@@ -120,22 +157,25 @@ func (f *Faker) CompanyCatchPhrase() string {
 func (f *Faker) CompanyBs() string { return f.combine("company.bs.0", "company.bs.1", "company.bs.2") }
 
 func (f *Faker) PhoneNumber() string {
-	return f.numerify(f.combine("phone_number.formats"))
+	return f.numerify(f.parse("phone_number.formats"))
 }
 
 func (f *Faker) CellPhoneNumber() string {
 	_, got := f.Dict["phone_number.cell_phone"]
 	if got {
-		return f.numerify(f.combine("phone_number.cell_phone"))
+		return f.numerify(f.parse("phone_number.cell_phone"))
 	}
-	return f.numerify(f.combine("phone_number.formats"))
+	return f.numerify(f.parse("phone_number.formats"))
 }
 
 func (f *Faker) Email() string     { return f.UserName() + "@" + f.DomainName() }
 func (f *Faker) FreeEmail() string { return f.UserName() + "@" + f.parse("internet.free_email") }
-func (f *Faker) SafeEmail() string { return f.UserName() + "@example." + f.sample("org", "com", "net") }
+func (f *Faker) SafeEmail() string {
+	return f.UserName() + "@example." + f.sample([]string{"org", "com", "net"})
+}
 func (f *Faker) UserName() string {
-	return fixUmlauts(strings.ToLower(f.sample(f.FirstName(), f.FirstName()+f.sample(".", "_")+f.LastName())))
+	tmp := []string{f.FirstName(), f.FirstName() + f.sample([]string{".", "_"}) + f.LastName()}
+	return fixUmlauts(strings.ToLower(f.sample(tmp)))
 }
 func (f *Faker) DomainName() string {
 	return f.DomainWord() + "." + f.DomainSuffix()
@@ -170,9 +210,7 @@ func (f *Faker) LastName() string   { return f.parse("name.last_name") }
 func (f *Faker) NamePrefix() string { return f.parse("name.prefix") }
 func (f *Faker) NameSuffix() string { return f.parse("name.suffix") }
 func (f *Faker) JobTitle() string {
-	return f.parse("name.title.descriptor") + " " +
-		f.parse("name.title.level") + " " +
-		f.parse("name.title.job")
+	return f.combine("name.title.descriptor", "name.title.level", "name.title.job")
 }
 
 func capitalize(s string) string {
@@ -199,41 +237,44 @@ func fixUmlauts(str string) string {
 			out = append(out, r)
 		}
 	}
-
 	return string(out)
 }
 
 func (f *Faker) combine(keys ...string) string {
-	tmp := make([]string, 0, len(keys))
+	f.Buffer.Reset()
 	for _, key := range keys {
-		tmp = append(tmp, f.parse(key))
+		f.Buffer.WriteString(f.parse(key))
+		f.Buffer.WriteByte(' ')
 	}
-	return strings.Join(tmp, " ")
+	return f.Buffer.String()[0 : f.Buffer.Len()-1]
 }
 
 func (f *Faker) parse(key string) string {
-	baseKeyIndex := strings.Index(key, ".")
-	baseKey := key[0:baseKeyIndex]
 
 	formats, found := f.Dict[key]
 	if !found {
 		panic("couldn't find key: " + key)
 	}
-
-	format := f.sample(formats...)
+	format := f.sample(formats)
+	if needRegex, ok := needRegexParsing[key]; ok {
+		if !needRegex {
+			return format
+		}
+	}
 
 	return recGsub(keyPattern, format, func(s string) string {
 		entryKey := strings.ToLower(s[2 : len(s)-1])
 
 		if strings.Index(entryKey, ".") == -1 {
-			entryKey = baseKey + "." + entryKey
+			baseKeyIndex := strings.Index(key, ".")
+			entryKey = key[0:baseKeyIndex] + "." + entryKey
 		}
 
 		entry, found := f.Dict[entryKey]
 		if !found {
 			panic("couldn't find entry key: " + entryKey)
 		}
-		return f.sample(entry...)
+		return f.sample(entry)
 	})
 }
 
@@ -245,11 +286,10 @@ func recGsub(r *regexp.Regexp, in string, f func(string) string) string {
 			return f(s)
 		})
 	}
-
 	return in
 }
 
-func (f *Faker) sample(set ...string) string {
+func (f *Faker) sample(set []string) string {
 	idx := f.Rand.Intn(len(set))
 	return set[idx]
 }
