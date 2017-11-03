@@ -1,5 +1,7 @@
 # Faker for Go
 
+![build status](https://travis-ci.org/manveru/faker.svg?branch=master)
+
 ## Usage
 
     package main
